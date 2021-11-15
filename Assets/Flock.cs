@@ -40,17 +40,28 @@ public class Flock : MonoBehaviour
     public float alignmentWeight { get { return _alignmentWeight; } }
 
 
+    [Header("Roaming Position")]
+    [SerializeField] private Vector3 _roamingPosition;
+    public Vector3 roamingPosition { get { return _roamingPosition; } }
+    [SerializeField] private float roamingPosReachedDistance;
+
     public FlockUnit[] allUnits { get; set; }
 
     private void Start()
     {
         GenerateUnits();
+        GetRoamingPosition();
     }
 
     private void Update()
     {
         for(int i = 0; i < allUnits.Length; i++)
         {
+            if(Vector3.Distance(allUnits[i].myTransform.position, roamingPosition) <= roamingPosReachedDistance)
+            {
+                GetRoamingPosition();
+            }
+
             allUnits[i].MoveUnit();
         }
     }
@@ -70,5 +81,19 @@ public class Flock : MonoBehaviour
             allUnits[i].AssignFlock(this);
             allUnits[i].InitializeSpeed(UnityEngine.Random.Range(minSpeed, maxSpeed));
         }
+    }
+
+    private void GetRoamingPosition()
+    {
+        Vector3 randomDirection = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f),
+            UnityEngine.Random.Range(-1f, 1f));
+
+        Vector3 newRoamingPosition = randomDirection * UnityEngine.Random.Range(20, 300);
+
+        _roamingPosition = newRoamingPosition;
+
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.transform.position = newRoamingPosition;
+        cube.GetComponent<MeshRenderer>().material.color = Color.red;
     }
 }

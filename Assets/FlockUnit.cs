@@ -58,6 +58,7 @@ public class FlockUnit : MonoBehaviour
 
         myTransform.forward = moveVector;
         myTransform.position += moveVector * Time.deltaTime;
+
     }
 
     private void CalculateSpeed()
@@ -132,7 +133,7 @@ public class FlockUnit : MonoBehaviour
 
     private Vector3 CalculateAlignmentVector()
     {
-        var alignementVector = (new Vector3(50,50,50) - myTransform.position).normalized;
+        var alignementVector = (assignedFlock.roamingPosition - myTransform.position).normalized;
         if(alignmentNeighbours.Count == 0)
         {
             return alignementVector;

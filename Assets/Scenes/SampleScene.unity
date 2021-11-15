@@ -838,7 +838,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flockUnitPrefab: {fileID: 3192599837902706833, guid: d81f3d947adc4ac49a627d2482a23d2a, type: 3}
-  flockSize: 10
+  flockSize: 100
   spawnBounds: {x: 10, y: 5, z: 10}
   _minSpeed: 10
   _maxSpeed: 10
@@ -848,6 +848,8 @@ MonoBehaviour:
   _cohesionWeight: 1
   _avoidanceWeight: 1.2
   _alignmentWeight: 1
+  _roamingPosition: {x: 0, y: 0, z: 0}
+  roamingPosReachedDistance: 10
 --- !u!4 &1979070826
 Transform:
   m_ObjectHideFlags: 0
