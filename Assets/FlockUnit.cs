@@ -13,6 +13,7 @@ public class FlockUnit : MonoBehaviour
     private Flock assignedFlock;
     private Vector3 currentVelocity;
     private float speed;
+    private Vector3 currentObstacleAvoidanceVector;
 
     public Transform myTransform { get; set; }
 
@@ -43,12 +44,26 @@ public class FlockUnit : MonoBehaviour
         Vector3 avoidanceVector = CalculateAvoidanceVector() * assignedFlock.avoidanceWeight;
         Vector3 alignmentVector = CalculateAlignmentVector() * assignedFlock.alignmentWeight;
 
-       /* float targetWeight = 0.2f;
-        Vector3 targetPoint = new Vector3(50, 50, 50);
-        Vector3 directionToTargetWeighted = (targetPoint - myTransform.position).normalized * targetWeight;
-       */
-
+        /* float targetWeight = 0.2f;
+         Vector3 targetPoint = new Vector3(50, 50, 50);
+         Vector3 directionToTargetWeighted = (targetPoint - myTransform.position).normalized * targetWeight;
+        */
         var moveVector = cohesionVector + avoidanceVector + alignmentVector;
+
+        Vector3 obstacleVector = Vector3.zero;
+
+        if (IsHeadingForCollision(moveVector))
+        {
+            Debug.Log("IsHeadingForCollision");
+            obstacleVector = FindUnobstructedDirection();
+            Debug.Log("obstacleVector: " + obstacleVector);
+            Debug.Log("transform.forward: " + myTransform.forward);
+            obstacleVector = obstacleVector.normalized;
+        }
+
+        moveVector += obstacleVector * assignedFlock.obstacleWeight;
+        
+
         moveVector = Vector3.SmoothDamp(myTransform.forward, moveVector, ref currentVelocity, smoothDamp);
         moveVector = moveVector.normalized * speed;
         if(moveVector == Vector3.zero)
@@ -59,6 +74,7 @@ public class FlockUnit : MonoBehaviour
         myTransform.forward = moveVector;
         myTransform.position += moveVector * Time.deltaTime;
 
+        //Debug.DrawRay(myTransform.position, moveVector * 2, Color.red, 0.25f);
     }
 
     private void CalculateSpeed()
@@ -177,8 +193,74 @@ public class FlockUnit : MonoBehaviour
         return avoidanceVector;
     }
 
+    public bool IsHeadingForCollision(Vector3 direction)
+    {
+        //Debug.DrawRay(transform.position, direction * assignedFlock.obstacleDistance, Color.green, 0.2f);
+        RaycastHit hit;
+        if (Physics.SphereCast(myTransform.position, 1.0f, direction, out hit, assignedFlock.obstacleDistance, LayerMask.GetMask("Obstacle")))
+        {
+
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public Vector3 FindUnobstructedDirection()
+    {
+        float furthestUnobstructedDst = 0;
+        RaycastHit hit;
+
+
+        float radius = 1.0f;
+        float ViewRadius = assignedFlock.obstacleDistance;
+        LayerMask layerMask = LayerMask.GetMask("Obstacle");
+        for (int i = 0; i < directions.Length; i++)
+        {
+            Vector3 dir = transform.TransformDirection(directions[i]);
+            Ray ray = new Ray(transform.position, dir);
+            Debug.DrawRay(transform.position, dir * assignedFlock.obstacleDistance, Color.cyan, 0.2f);
+            if (!Physics.SphereCast(ray, radius, ViewRadius, layerMask))
+            {
+                return dir;
+            }
+        }
+
+        return Vector3.zero;
+    }
+
+
+
     private bool IsInFOV(Vector3 position)
     {
         return Vector3.Angle(myTransform.forward, position - myTransform.position) <= FOVAngle;
     }
+
+
+    // obstacle avoidance
+    public const int numViewDirections = 300;
+    public Vector3[] directions;
+    float goldenRatio = (1 + Mathf.Sqrt(5)) / 2;
+
+    public void BoidHelper()
+    {
+        directions = new Vector3[numViewDirections];
+
+        float angleIncrement = Mathf.PI * 2 * goldenRatio;
+
+        for (int i = 0; i < numViewDirections; i++)
+        {
+            float t = (float)i / numViewDirections;
+            float inclination = Mathf.Acos(1 - 2 * t);
+            float azimuth = angleIncrement * i;
+
+            float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
+            float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
+            float z = Mathf.Cos(inclination);
+            directions[i] = new Vector3(x, y, z);
+            //Debug.DrawRay(transform.position, directions[i] *  10, Color.red);
+        }
+    }
+
 }

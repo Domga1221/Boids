@@ -27,6 +27,9 @@ public class Flock : MonoBehaviour
     [Range(0, 10)]
     [SerializeField] private float _alignmentDistance;
     public float alignmentDistance { get { return _alignmentDistance; } }
+    [Range(0, 10)]
+    [SerializeField] private float _obstacleDistance;
+    public float obstacleDistance { get { return _obstacleDistance; } }
 
     [Header("Behavior Weights")]
     [Range(0, 10)]
@@ -38,6 +41,9 @@ public class Flock : MonoBehaviour
     [Range(0, 10)]
     [SerializeField] private float _alignmentWeight;
     public float alignmentWeight { get { return _alignmentWeight; } }
+    [Range(0, 100)]
+    [SerializeField] private float _obstacleWeight;
+    public float obstacleWeight { get { return _obstacleWeight; } }
 
 
     [Header("Roaming Position")]
@@ -80,6 +86,7 @@ public class Flock : MonoBehaviour
             allUnits[i] = Instantiate(flockUnitPrefab, spawnPosition, rotation);
             allUnits[i].AssignFlock(this);
             allUnits[i].InitializeSpeed(UnityEngine.Random.Range(minSpeed, maxSpeed));
+            allUnits[i].BoidHelper();
         }
     }
 
